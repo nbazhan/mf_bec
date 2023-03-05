@@ -1,17 +1,7 @@
 function calc_jv_from_init(obj, init_jvs)
 
-obj.drs.jv = [obj.drs.data 'jv/'];
-if ~exist(obj.drs.jv, 'dir')
-    util.create_folder(obj.drs.jv);
-end
 
-
-if ~isfield(obj.data, 'jvs') || ~exist(obj.drs.jv, 'dir')
-    %s = size(obj.data.t, 2);
-    %psi = obj.load_psi(s);
-    %t = obj.data.t(s);
-    %[rjv, r] = obj.model.get_jv(psi, 1, 2, t);
-
+if ~isfield(obj.data, 'jvs') 
     s = 1;
     rjv = init_jvs; 
     r_mean = 0.5*(obj.model.Vs.toroidal(1).R.x + obj.model.Vs.toroidal(2).R.x);
@@ -52,11 +42,10 @@ for s = si : sf
     disp(jvs(s, :))
 end 
 
-save([obj.drs.jv 'jvs.mat'], 'jvs');
-save([obj.drs.jv 'rs.mat'], 'rs');
-
 obj.data.jvs = jvs;
 obj.data.rs = rs;
+
+obj.save_model()
 end
 
 

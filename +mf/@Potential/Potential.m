@@ -52,10 +52,11 @@ classdef Potential < dynamicprops
               var_nt = '';
           end
 
-          if any(strcmp(varargin, 'tof'))
-              var_tof = 'tof';
+          % check if tof is applied to outer or to the inner part of ring
+          if any(strcmp(varargin, 'inner'))
+              var_tof = 'inner';
           else
-              var_tof = '';
+              var_tof = 'outer';
           end
 
 

@@ -1,12 +1,5 @@
 function calc_jv(obj)
 
-if ~isfield(obj.drs, 'jv')
-    obj.drs.jv = [obj.drs.data 'jv/'];
-    if ~exist(obj.drs.jv, 'dir')
-        util.create_folder(obj.drs.jv);
-    end
-end
-
 
 if ~isfield(obj.data, 'jvs')
     s = size(obj.data.t, 2);
@@ -46,11 +39,10 @@ for s = sf : -1 : 1
     disp([num2str(s), ':', num2str(sf), ' jv detected'])
 end 
 
-save([obj.drs.jv 'jvs.mat'], 'jvs');
-save([obj.drs.jv 'rs.mat'], 'rs');
-
 obj.data.jvs = jvs;
 obj.data.rs = rs;
+
+obj.save_model()
 end
 
 

@@ -29,7 +29,7 @@ for i = 1 : length(typs)
         r = sqrt((grid.X - rc.x).^2 + ...
                  (grid.Y - rc.y).^2);
         filter = obj.get_ring_mask(1, t,  var_nt).*(r < obj.Vs.toroidal(1).get_r(t, var_nt));
-        v = v + obj.Vs.toroidal(1).get_v(t, var_nt).*filter;
+        v = v + obj.Vs.toroidal(1).get_v(t, var_nt, 'tof', 'inner').*filter;
         free_space = ~filter;
         if length(obj.Vs.toroidal) > 1
             for j = 2:length(obj.Vs.toroidal)
@@ -37,17 +37,17 @@ for i = 1 : length(typs)
                 r = sqrt((grid.X - rc.x).^2 + ...
                          (grid.Y - rc.y).^2);
                 filter = obj.get_ring_mask(j - 1, t, var_nt).*(r > obj.Vs.toroidal(j - 1).get_r(t, var_nt));
-                v = v + obj.Vs.toroidal(j - 1).get_v(t, var_nt, 'tof').*filter.*free_space;
+                v = v + obj.Vs.toroidal(j - 1).get_v(t, var_nt, 'tof', 'outer').*filter.*free_space;
                 free_space = free_space.*~filter;
 
                 filter = obj.get_ring_mask(j, t, var_nt).*...
                         (r < obj.Vs.toroidal(j).get_r(t, var_nt));
-                v = v + obj.Vs.toroidal(j).get_v(t, var_nt, 'tof').*filter.*free_space;
+                v = v + obj.Vs.toroidal(j).get_v(t, var_nt, 'tof', 'inner').*filter.*free_space;
                 free_space = free_space.*~filter;
             end
         end
         filter = obj.get_ring_mask(length(obj.Vs.toroidal), t, var_nt).*(r > obj.Vs.toroidal(end).get_r(t, var_nt));
-        v = v + obj.Vs.toroidal(end).get_v(t, var_nt).*free_space.*filter;
+        v = v + obj.Vs.toroidal(end).get_v(t, var_nt, 'tof', 'outer').*free_space.*filter;
     end
 end
 

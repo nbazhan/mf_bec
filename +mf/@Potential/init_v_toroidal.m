@@ -32,12 +32,12 @@ function init_v_toroidal(obj)
       
 
       addprop(obj, 'tof');
+      tof = struct('inner', [10, 10.1], 'outer', [10, 10.1]);
       if isfield(obj.params, 'tof')
-          tof = obj.params.tof;
-      else
-          tof = [1, 1.1];
+          tof = util.add_struct(tof, obj.params.tof);
       end
-      obj.tof = obj.model.to_time_dim(tof);
+      obj.tof.inner = obj.model.to_time_dim(tof.inner);
+      obj.tof.outer = obj.model.to_time_dim(tof.outer);
 
 
       addprop(obj, 'c');

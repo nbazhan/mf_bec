@@ -1,4 +1,4 @@
-function [Psi, nt, mu] = get_zng(obj, varargin)
+function [psi, nt, mu] = get_zng_2(obj, varargin)
 
 model = obj.model;
 grid = model.grid;
@@ -26,28 +26,27 @@ Nl2 = model.get_v(obj.t, 'nt');
 
 % initial Phi
 if isempty(obj.mu)
+
+    % somehow ZNG does not work with rand, only starting from ones
     if model.D == 1
-        phi0 = rand([1, grid.N.x]) + 1i*rand([1, grid.N.x]); 
-        phi0 = ones([1, grid.N.x]) + 1i*ones([1, grid.N.x]); 
+        psi = rand([1, grid.N.x]) + 1i*rand([1, grid.N.x]); 
+        psi = ones([1, grid.N.x]) + 1i*ones([1, grid.N.x]); 
     elseif model.D == 2
-        phi0 = rand(grid.N.x, grid.N.y) + 1i*rand(grid.N.x, grid.N.y); 
-        phi0 = ones(grid.N.x, grid.N.y) + ...
-                1i*ones(grid.N.x, grid.N.y); 
+        psi = rand(grid.N.x, grid.N.y) + 1i*rand(grid.N.x, grid.N.y);  
+        psi = ones(grid.N.x, grid.N.y) + 1i*ones(grid.N.x, grid.N.y);  
     elseif model.D == 3
-        phi0 = rand(grid.N.x, grid.N.y, grid.N.z) + 1i*rand(grid.N.x, grid.N.y, grid.N.z); 
-        phi0 = ones(grid.N.x, grid.N.y, grid.N.z) + ...
-                    1i*ones(grid.N.x, grid.N.y, grid.N.z); 
+        psi = rand(grid.N.x, grid.N.y, grid.N.z) + 1i*rand(grid.N.x, grid.N.y, grid.N.z); 
+        psi = ones(grid.N.x, grid.N.y, grid.N.z) + 1i*ones(grid.N.x, grid.N.y, grid.N.z); 
     end
     
-    Psi = sqrt(config.N/(sum(sum(sum(abs(phi0).^2)))*grid.dV))*phi0;
+    psi = sqrt(config.N/(sum(sum(sum(abs(psi).^2)))*grid.dV))*psi;
 else
-    %Psi = obj.get_tf(); % use only Thomas-Fermi approximation as initial guess if mu_init is set
-    Psi = sqrt((obj.mu - v)/config.g);
+    psi = obj.get_tf(); % use only Thomas-Fermi approximation as initial guess if mu_init is set
 end
 
 % add initial angular momentum
 if ~isempty(obj.phase)
-    Psi = Psi.*exp(1i*obj.phase);
+    psi = psi.*exp(1i*obj.phase);
 end
 	
 if isempty(obj.mu)
@@ -65,19 +64,17 @@ if obj.model.D == 3
 end
 
 C = zeros(1000, 1);
-c_old = 0;
 MU = zeros(1000, 1);
 
-delta = 1;
 i = 0;
-ekk = exp(-grid.kk * dt);
+
+ekk = exp(-0.5*grid.kk*dt);
 if(model.w_cs ~= 0)
-    ekx = exp(-(grid.k.x.^2 - 2*grid.k.x.*grid.Y*model.w_cs)/2*dt);
-    eky = exp(-(grid.k.y.^2 + 2*grid.k.y.*grid.X*model.w_cs)/2*dt);
+    ekx = exp(-(grid.KX.^2 - 2*grid.KX.*grid.Y*model.w_cs)/4*dt);
+    eky = exp(-(grid.KY.^2 + 2*grid.KY.*grid.X*model.w_cs)/4*dt);
 end
 
-
-Nl = v + config.g*real(Psi.*conj(Psi));
+Nl = v + config.g*real(psi.*conj(psi));
 
 util.check(model.test, struct('Init_V', v, ...
                             'Init_Nl2', Nl2, ...
@@ -86,17 +83,23 @@ util.check(model.test, struct('Init_V', v, ...
 while true 
     i = i + 1;
 
-    Psi = exp(-(dt/2)*Nl).*Psi;
     if(model.w_cs ~= 0)
-        Psi = ifft(ekx.*fft(Psi, grid.N.x, 2), grid.N.x, 2);
-        Psi = ifft(eky.*fft(Psi, grid.N.y, 1), grid.N.y, 1);
+        psi = ifft(ekx.*fft(psi, grid.N.x, 2), grid.N.x, 2);
+        psi = ifft(eky.*fft(psi, grid.N.y, 1), grid.N.y, 1);
     else
-        Psi = ifftn(ekk.*fftn(Psi));
+        psi = ifftn(ekk.*fftn(psi));
     end
-    Psi = exp(-(dt/2)*Nl).*Psi;
-    
-	Psi2 = real(Psi.*conj(Psi));
-    util.check(model.test, struct('Psi2', Psi2), '-')
+    psi = exp(-Nl*dt).*psi;
+
+    if(model.w_cs ~= 0)
+        psi = ifft(eky.*fft(psi, grid.N.y, 1), grid.N.y, 1);
+        psi = ifft(ekx.*fft(psi, grid.N.x, 2), grid.N.x, 2);
+    else
+        psi = ifftn(ekk.*fftn(psi));
+    end
+
+	psi2 = real(psi.*conj(psi));
+    util.check(model.test, struct('Psi2', psi2), '-')
     %disp(['i : ', num2str(i), 'Psi1 : ', num2str(max(Psi2(:))), ', ', num2str(sum(Psi2(:)))])
     
     if(T > 0 && mod(i,10) == 1 && isempty(obj.mu)) % for better performance and stability we do some initial iterations without a thermal cloud
@@ -109,7 +112,7 @@ while true
             nt = nt*config.N/Nt; % we need to get the correct total number of particles even above Tc
         end
     end
-    N = sum(Psi2(:)).*grid.dV;
+    N = sum(psi2(:)).*grid.dV;
     if isempty(obj.mu)
         c = sqrt(Nc/N);
         N = N*c^2;
@@ -120,28 +123,27 @@ while true
         C(i) = gather(N);
     end
 
-    Psi =Psi*c;
-    Psi2 = Psi2*abs(c)^2;
-    Nl = v + config.g*(abs(Psi).^2);
+    psi =psi*c;
+    psi2 = psi2*abs(c)^2;
+    Nl = v + config.g*(abs(psi).^2);
      
-    H = model.applyham(Psi, Nl + 2*config.g*model.shrink(nt));
+    H = model.applyham(psi, Nl + 2*config.g*model.shrink(nt));
     mu2 = real(sum(H(:)).*grid.dV)/N;
     MU(i) = gather(mu2);
 
     util.check(model.test, struct('i', i, ...
                                 'nt', nt, ...
                                 'c', c, ...
-                                'Psi2', Psi2, ...
+                                'Psi2', psi2, ...
                                 'Nl', Nl, ...
                                 'mu', mu2));
 
     if(mod(i,10) == 0)
-        %disp([num2str(i), ': ', num2str(delta), '/', num2str(obj.acc)])
         if(T > 0)
             if model.D == 3
-                Nl2(nx + 1:3*nx, ny + 1:3*ny, nz+1:3*nz) = v + 2*config.g*real(Psi2);
+                Nl2(nx + 1:3*nx, ny + 1:3*ny, nz+1:3*nz) = v + 2*config.g*real(psi2);
             elseif model.D == 2
-                Nl2(nx + 1:3*nx, ny + 1:3*ny) = v + 2*config.g*real(Psi2);
+                Nl2(nx + 1:3*nx, ny + 1:3*ny) = v + 2*config.g*real(psi2);
             end
             util.check(model.test, struct('size_Nl2', size(Nl2), ...
                                             'size_nt', size(nt)));
@@ -160,28 +162,29 @@ while true
                                         'Nl2', Nl2));
         end 
     end
-    util.check(model.test, struct('Psi', Psi, 'mu', mu2))
+    util.check(model.test, struct('Psi', psi, 'mu', mu2))
     Nl = Nl + 2*config.g*model.shrink(nt);
     %util.check(model.test, struct('Nl', Nl));
    
     if(i > 50) && mod(i,10) == 5
         delta = (abs(C(i)-C(i-9))/9 + abs(C(i)-C(i-1)))/dt/C(i);
+        %disp([num2str(i), ': ', num2str(delta), '/', num2str(obj.acc)])
         util.check(model.test, struct('delta', delta))
         if(delta < obj.acc)
             if (dt < obj.acc*10 || dt < 1e-4)
                 break;
             else
                 dt = dt/1.5;
-                ekk = exp(-grid.kk*dt);
+                ekk = exp(-0.5*grid.kk*dt);
                 if(model.w_cs ~= 0)
-                    ekx = exp(-(grid.k.x.^2-2*grid.k.x.*grid.Y*model.w_cs)/2*dt);
-                    eky = exp(-(grid.k.y.^2+2*grid.k.y.*grid.X*model.w_cs)/2*dt);
+                    ekx = exp(-(grid.KX.^2 - 2*grid.KX.*grid.Y*model.w_cs)/4*dt);
+                    eky = exp(-(grid.KY.^2 + 2*grid.KY.*grid.X*model.w_cs)/4*dt);
                 end
             end
         end
     end
     if(i>=10000) 
-    %if(i>=100000) 
+    %if(i>=1000)
         warning('Convergence not reached');
         break;
     end
@@ -189,24 +192,22 @@ end
 mu = C(i-1);
 
 
-util.check(model.test, struct('Last_Psi', Psi))
+util.check(model.test, struct('Last_Psi', psi))
 % Make intial mean phase inside toroidal potential equal to zero 
 % substitute mean phase base_phi
-if obj.model.D > 1 && isfield(model.Vs, 'toroidal')
-    if ~isempty(model.Vs.toroidal)
-         r = sqrt(grid.X.^2 + grid.Y.^2);
-         R = model.Vs.toroidal(1).R.x;
-         psi = Psi;
-         filter = (abs(r - R) < 0.01*R);
-         if model.D == 3
-             psi = psi(:, :, round(grid.N.z./2));
-             filter = filter(:, :, round(grid.N.z./2));
-         end
-         util.check(model.test, struct('Last_Psi_after_psi', Psi))
-         base_phi = real(sum(angle(psi).*filter)/sum(filter));
-         util.check(model.test, struct('base_phi', base_phi))
-         Psi = Psi.*exp(-1i*base_phi);
-    end
+if isfield(model.Vs, 'toroidal')
+     r = sqrt(grid.X.^2 + grid.Y.^2);
+     R = model.Vs.toroidal(1).R.x;
+     psi_add = psi;
+     filter = (abs(r - R) < 0.01*R);
+     if model.D == 3
+         psi_add = psi_add(:, :, round(grid.N.z./2));
+         filter = filter(:, :, round(grid.N.z./2));
+     end
+     util.check(model.test, struct('Last_Psi_after_psi', psi))
+     base_phi = real(sum(angle(psi_add).*filter)/sum(filter));
+     util.check(model.test, struct('base_phi', base_phi))
+     psi = psi.*exp(-1i*base_phi);
 end
-util.check(model.test, struct('Last_Psi_after_phase', Psi))
+util.check(model.test, struct('Last_Psi_after_phase', psi))
 end
