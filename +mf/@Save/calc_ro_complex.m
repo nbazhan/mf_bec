@@ -1,12 +1,5 @@
 function calc_ro_complex(obj, ks)
 
-if ~isfield(obj.drs, 'ro_complex')
-    obj.drs.ro_complex = [obj.drs.data 'ro_complex/'];
-    if ~exist(obj.drs.ro_complex, 'dir')
-        util.create_folder(obj.drs.ro_complex);
-    end
-end
-
 
 sf = size(obj.data.t, 2);
 if ~isfield(obj.data, 'projec_ks_complex')
@@ -45,8 +38,8 @@ for s = si : sf
                                   num2str(sum(projec_ks_complex(:, s)), '%.2g')])
 end
 
-save([obj.drs.ro 'projec_ks_complex.mat'], 'projec_ks_complex');
 obj.data.projec_ks_complex = projec_ks_complex;
+obj.save_model()
 end
 
 

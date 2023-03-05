@@ -1,12 +1,5 @@
 function calc_ro(obj, ks)
 
-if ~isfield(obj.drs, 'ro')
-    obj.drs.ro = [obj.drs.data 'ro/'];
-    if ~exist(obj.drs.ro, 'dir')
-        util.create_folder(obj.drs.ro);
-    end
-end
-
 
 sf = size(obj.data.t, 2);
 if ~isfield(obj.data, 'projec_ks')
@@ -45,8 +38,9 @@ for s = si : sf
                                   num2str(sum(projec_ks(:, s)), '%.2g')])
 end
 
-save([obj.drs.ro 'projec_ks.mat'], 'projec_ks');
 obj.data.projec_ks = projec_ks;
+
+obj.save_model()
 end
 
 

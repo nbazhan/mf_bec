@@ -1,18 +1,17 @@
-function v = get_v_toroidal(obj, t, varargin)
+function v = get_v_toroidal(obj, t, var_nt, var_tof)
 
-if any(strcmp(varargin, 'nt'))
-    var_nt = 'nt';
+if strcmp(var_nt, 'nt')
     grid = obj.model.grid_nt;
 else
-    var_nt = '';
     grid = obj.model.grid;
 end
 
 % if tof - decrease vr amplitude with c coef
-if t <= obj.tof(1) || ~any(strcmp(varargin, 'tof'))
+tof = obj.tof.(var_tof);
+if t <= tof(1) 
     c = 1;
-elseif t < obj.tof(2)
-    c = 1 - (t - obj.tof(1))/(obj.tof(2) - obj.tof(1));
+elseif t < tof(2)
+    c = 1 - (t - tof(1))/(tof(2) - tof(1));
 else
     c = 0;
 end
