@@ -3,6 +3,7 @@ function add_potential(obj, params)
 params.model = obj;
 newV = mf.Potential(params);
 
+
 if ~isfield(obj.Vs, params.typ)
     obj.Vs.(params.typ) = [];
 end
