@@ -6,7 +6,7 @@ else
     grid = obj.model.grid;
 end
 
-phi = atan2(grid.Y - obj.get_rc(t).y, grid.X - obj.get_rc(t).x);
+phi = atan2(grid.Y - obj.get_rc(t).y, grid.X - obj.get_rc(t).x) - obj.model.w_cs*t;
 if obj.R.x <= 0 && obj.R.y <= 0
     r2 = 0;
 else

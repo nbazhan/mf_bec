@@ -221,5 +221,28 @@ classdef Model < handle
       function converted_psi = to_psi_dim(obj, psi)
           converted_psi = psi*obj.l.r^(ndims(psi)*0.5);
       end
+
+      % convert psi
+      function psi = to_psi(obj, converted_psi)
+          psi = converted_psi/obj.l.r^(ndims(converted_psi)*0.5);
+      end
+
+      % convert interaction constant g
+      function converted_g = to_g_dim(obj, g)
+          if obj.D == 2
+              converted_g = g*(obj.config.M/obj.config.hbar^2);
+          elseif obj.D == 3
+              converted_g = g*(obj.config.M/(obj.config.hbar^2*obj.l.r));
+          end
+      end
+
+
+      function g = to_g(obj, converted_g)
+          if obj.D == 2
+              g = converted_g/(obj.config.M/obj.config.hbar^2);
+          elseif obj.D == 3
+              g = converted_g/(obj.config.M/(obj.config.hbar^2*obj.l.r));
+          end
+      end
    end
 end

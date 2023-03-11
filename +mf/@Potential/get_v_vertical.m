@@ -9,7 +9,7 @@ else
     grid = obj.model.grid;
 end
 
-r2 = grid.X.^2 + grid.Y.^2;
+r2 = sqrt(grid.X.^2 + grid.Y.^2);
 filter = (r2 >= obj.rlim(1)).*(r2 <= obj.rlim(2));
 
 if obj.n > 0
