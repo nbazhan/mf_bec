@@ -9,9 +9,6 @@ else
 end
 
 at = atan2(grid.Y, grid.X);
-
-cU_max = max(obj.cU);
-cU_min = min(obj.cU);
-v = u.*(cU_max - (cU_max - cU_min)*abs(at - obj.W*t + obj.phi)/pi).*cos(obj.n*at - obj.W*t + obj.phi);
+v = u.*cos(obj.n*at - obj.W*t + obj.phi);
 
 end

@@ -9,11 +9,16 @@ else
 end
 
 filter = zeros(size(grid.X));
-for i = 1 : obj.model.D
-    ax = obj.model.xyz(i);
-    filter = filter + (grid.(upper(ax)) < min(obj.lim.(ax))) + (grid.(upper(ax)) > max(obj.lim.(ax)));
-end
 
+if strcmp(obj.direction, 'cartesian')
+    for i = 1 : obj.model.D
+        ax = obj.model.xyz(i);
+        filter = filter + (grid.(upper(ax)) < min(obj.lim.(ax))) + (grid.(upper(ax)) > max(obj.lim.(ax)));
+    end
+elseif strcmp(obj.direction, 'polar')
+    r = sqrt(grid.X.^2 + grid.Y.^2);
+    filter = filter + (r < min(obj.lim.r)) + (r > max(obj.lim.r));
+end
 v = u*(filter > 0);
 
 end

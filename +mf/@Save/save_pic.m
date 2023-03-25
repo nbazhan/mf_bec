@@ -59,7 +59,7 @@ if obj.model.D == 1
 
 
 % choose specific design for sustem in one plane
-elseif obj.model.D == 2 || obj.model.rings.nz == 1
+elseif obj.model.D == 2 || obj.model.rings.nz == 1 || ~isfield(obj.model.Vs, 'toroidal')
     f = figure('Position', [300 300 800 300*(obj.model.D - 1)], 'visible', 'off');
     p = uipanel('Parent', f, 'BorderType', 'none'); 
 

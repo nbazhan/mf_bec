@@ -54,11 +54,7 @@ for s = si:sf
 
         ax = subplot(2, 4, 2, 'Parent', p);
         ax.Position = ax.Position - [0.03 0 0 0];
-        if obj.model.D == 2
-            phase_xy = angle(psi);
-        elseif obj.model.D == 3
-            phase_xy = angle(psi(:, :, obj.model.grid.N.z/2));
-        end
+        phase_xy = angle(sum(psi, 3);
         obj.plot_psi(phase_xy, 'xy')
         c = colorbar('Location','eastoutside');
         c.Position = c.Position + [.025 0 0 0];

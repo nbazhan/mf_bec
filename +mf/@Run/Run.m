@@ -25,6 +25,9 @@ classdef Run < handle
               if isfield(params, 'dt')
                   obj.dt = params.dt;
               end
+              if isfield(params, 'ecut')
+                  obj.ecut = params.ecut;
+              end
           end
           
           obj.inv_td = 1/(obj.model.config.td);
@@ -32,6 +35,7 @@ classdef Run < handle
           obj.dt = obj.model.to_time_dim(obj.dt);
           obj.dt_f = obj.dt*1i/(1 + 1i*obj.model.config.gamma);% time step (with gamma included)
           
+          obj.ecut = obj.model.to_energy_dim(obj.ecut);
           if(obj.ecut > 0 && obj.model.config.T > 0)
               mask = obj.model.grid.kk < obj.ecut;
               obj.ekk = exp(-obj.model.grid.kk*obj.dt_f).*mask; % mask in fourier space implements cut-off of high-energy modes 
