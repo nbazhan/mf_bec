@@ -1,4 +1,4 @@
-function [psi, nt, mu] = get_zng_2(obj, varargin)
+function [psi, nt, mu] = get_zng(obj, varargin)
 
 model = obj.model;
 grid = model.grid;
@@ -8,7 +8,7 @@ dt = obj.dt;
 
 if model.D < 3
     T = 0;
-elseif size(varargin) > 1 
+elseif size(varargin, 2) >= 1 
     T = varargin{1};
 else
     T = config.T;

@@ -23,5 +23,11 @@ function init_v_cosine(obj)
           obj.W = 0;
       end
 
+      addprop(obj, 'cU');
+      if isfield(obj.params, 'cU')
+          obj.cU = obj.params.cU;
+      else
+          obj.cU = [1, 1];
+      end
 end
 
